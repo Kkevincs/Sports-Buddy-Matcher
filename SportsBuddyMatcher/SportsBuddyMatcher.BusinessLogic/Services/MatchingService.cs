@@ -32,7 +32,6 @@ public class MatchingService : IMatchingService
         if (me is null || me.User.PreferredRangeKm is null || !TryCoordinates(me.User.LocationNavigation, out var myLat, out var myLon))
             return new List<MatchDto>();
 
-        var myTimes = MergeTimes(me.User.Availabilities);
         var matches = new List<MatchDto>();
         foreach (var other in players.Where(p => p.UserId != me.UserId))
         {
@@ -43,15 +42,10 @@ public class MatchingService : IMatchingService
             var distance = DistanceKm(myLat, myLon, lat, lon);
             if (distance > range) continue;
 
-            var theirTimes = MergeTimes(other.User.Availabilities);
-            var shared = SharedMinutes(myTimes, theirTimes);
-            if (shared <= 0) continue;
-
             var skill = 100 - 25 * Math.Abs(me.SkillLevel - other.SkillLevel);
             var location = range == 0 ? 100 : 100 * (1 - distance / range);
-            var union = myTimes.Sum(t => t.End - t.Start) + theirTimes.Sum(t => t.End - t.Start) - shared;
-            var availability = 100 * shared / union;
-            var score = 0.5 * skill + 0.3 * location + 0.2 * availability;
+            // Keep the existing 5:3 skill/distance ratio, scaled to a score out of 100.
+            var score = 0.625 * skill + 0.375 * location;
             matches.Add(new MatchDto(other.UserId, other.User.Name, score, Math.Round(distance, 1)));
         }
 

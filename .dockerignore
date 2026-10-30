@@ -1,0 +1,11 @@
+.git
+**/.vs
+**/bin
+**/obj
+**/*.user
+**/.env
+**/.env.*
+**/wwwroot/uploads
+tools
+docs
+*.md

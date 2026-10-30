@@ -123,11 +123,11 @@ var currentUser = new DemoCurrentUser(ids["you"]);
 var eventRepository = new EventRepository(db);
 var matching = new MatchingService(repository, currentUser, eventRepository, TimeProvider.System);
 var matches = await matching.GetMatchesAsync(basketball.Id);
-var expectedNames = new[] { "Demo Perfect", "Demo Partial Overlap", "Demo Nearby", "Demo Different Level" };
+var expectedNames = new[] { "Demo Perfect", "Demo Partial Overlap", "Demo No Overlap", "Demo Missing Availability", "Demo Touching Times Only", "Demo Nearby", "Demo Different Level" };
 Check(matches.Select(m => m.Name).SequenceEqual(expectedNames), "Eligible users and ranking");
-Check(matches.Select(m => m.Score).SequenceEqual(new[] { 100.0, 86.67, 81.5, 75.0 }), "Weighted scores, geographic distance, merged availability");
+Check(matches.Select(m => m.Score).SequenceEqual(new[] { 100.0, 100.0, 100.0, 100.0, 100.0, 76.87, 68.75 }), "Player skill/distance scores ignore schedule overlap or missing availability");
 Check(matches.All(m => m.UserId != currentUser.Id), "Self exclusion");
-Check((await matching.GetMatchesAsync(tennis.Id)).Single().Score == 62.5, "Separate sport levels with shared user availability");
+Check((await matching.GetMatchesAsync(tennis.Id)).Single().Score == 53.12, "Separate sport levels without availability weighting");
 Check((await matching.GetMatchesAsync(int.MaxValue)).Count == 0, "Unplayed sport");
 Console.WriteLine($"Basketball skillId={basketball.Id}; tennis skillId={tennis.Id}; demo userId={currentUser.Id}");
 foreach (var match in matches) Console.WriteLine($"{match.Name}: {match.Score}");
@@ -137,7 +137,7 @@ Check(eventMatches.Select(m => m.Name).SequenceEqual(new[] {
     "Matching Demo Event Perfect", "Matching Demo Event Partial Attendance", "Matching Demo Event Overnight", "Matching Demo Event Nearby"
 }), "Event eligibility, past/incomplete exclusions, and ordering");
 Check(eventMatches.Select(m => m.Score).SequenceEqual(new[] { 100.0, 90.0, 83.33, 81.5 }), "Event scores");
-Check(feed.Count == 8 && feed.Select(m => m.Score).SequenceEqual(feed.Select(m => m.Score).OrderDescending()), "Combined player/event order");
+Check(feed.Count == 11 && feed.Select(m => m.Score).SequenceEqual(feed.Select(m => m.Score).OrderDescending()), "Combined player/event order");
 Check((await matching.GetFeedAsync(tennis.Id)).Count(m => m.Type == "event") == 1, "Event sport filter");
 await using (var transaction = await db.Database.BeginTransactionAsync())
 {
@@ -175,15 +175,26 @@ await using (var transaction = await db.Database.BeginTransactionAsync())
         new AvailabilityRequest { DayOfWeek = DayOfWeek.Wednesday, StartTime = new TimeOnly(18, 0), EndTime = new TimeOnly(19, 0) }
     }), "User availability update");
     Check(await db.Availabilities.CountAsync(a => a.UserId == currentUser.Id) == 1, "Old availability removed on update");
-    Check(!(await matching.GetMatchesAsync(basketball.Id)).Any(m => m.UserId == ids["perfect"]), "Shared schedule changes basketball eligibility");
-    Check((await matching.GetMatchesAsync(tennis.Id)).Count == 0, "Shared schedule changes tennis eligibility");
+    Check((await matching.GetMatchesAsync(basketball.Id)).Select(m => (m.UserId, m.Score))
+        .SequenceEqual(matches.Select(m => (m.UserId, m.Score))), "Changing own schedule preserves basketball candidates and scores");
+    Check((await matching.GetMatchesAsync(tennis.Id)).Single().Score == 53.12, "Changing own schedule preserves tennis matching");
     Check(!(await matching.GetFeedAsync(basketball.Id)).Any(m => m.Name == "Matching Demo Event Perfect"), "User availability also filters events");
+    Check(await userService.UpdateAvailabilityAsync(currentUser.Id, new()), "Clear own availability");
+    Check((await matching.GetMatchesAsync(basketball.Id)).Select(m => (m.UserId, m.Score))
+        .SequenceEqual(matches.Select(m => (m.UserId, m.Score))), "Empty own availability preserves player matching");
+    var noScheduleFeed = await matching.GetFeedAsync(basketball.Id);
+    Check(noScheduleFeed.Count(m => m.Type == "user") == matches.Count && noScheduleFeed.All(m => m.Type != "event"),
+        "Without availability, feed still contains players but excludes events");
+    Check(await userService.UpdateAvailabilityAsync(currentUser.Id, new()
+    {
+        new AvailabilityRequest { DayOfWeek = DayOfWeek.Wednesday, StartTime = new TimeOnly(18, 0), EndTime = new TimeOnly(19, 0) }
+    }), "Restore schedule for sport-deletion check");
     Check(await playerService.DeleteAsync(ownSkill.Id), "Delete own sport");
     Check(await db.Availabilities.CountAsync(a => a.UserId == currentUser.Id) == 1, "Deleting sport preserves user availability");
     await transaction.RollbackAsync();
 }
 db.ChangeTracker.Clear();
-Console.WriteLine("Database checks passed: eligibility, both distance limits, weighted scores, overlap, per-sport skills, JWT owner, availability replacement.");
+Console.WriteLine("Database checks passed: player scores independent of both schedules, distance limits, event availability, per-sport skills, JWT owner, availability replacement.");
 
 if (args.Length > 0)
 {

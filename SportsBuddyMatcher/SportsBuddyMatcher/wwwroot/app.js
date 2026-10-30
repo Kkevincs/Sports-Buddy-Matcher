@@ -294,7 +294,7 @@ function renderFeed() {
   $("#match-list").replaceChildren(...events.map(e => eventCard(e, Number($("#feed-sport").value))));
   $("#people-list").replaceChildren(...people.map(personCard));
   if (!events.length) $("#match-list").append(element("p", "No matching sessions yet. Events need to fit your sport, travel distance and availability. Why not organise one?", "empty"));
-  if (!people.length) $("#people-list").append(element("p", "No matching players yet. Check your sports, distance and weekly availability on your profile.", "empty"));
+  if (!people.length) $("#people-list").append(element("p", "No matching players yet. Check your sports and travel distance on your profile.", "empty"));
 }
 
 function eventAddressMode() {
@@ -405,7 +405,7 @@ $("#register-form").addEventListener("submit", event => {
     });
     await signedIn(auth, "profile");
     $("#register-form").reset();
-    notice("Account created. Add your sports and availability to find matches.");
+    notice("Account created. Add sports to find players, and availability to find events.");
   });
 });
 

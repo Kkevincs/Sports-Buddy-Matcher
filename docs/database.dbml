@@ -1,0 +1,125 @@
+// Current sportsbuddymatcher SQL Server schema, verified 30 October 2026.
+// Application tables only; EF migration history is omitted.
+// Syntax: https://dbml.dbdiagram.io/docs/
+
+Project SportsBuddyMatcher {
+  database_type: 'MSSQL'
+}
+
+Table dbo.Location {
+  Id int [pk, increment, not null]
+  Country nvarchar(100) [not null]
+  City nvarchar(100) [not null]
+  Street nvarchar(255) [not null]
+  Latitude nvarchar(max) [null]
+  Longitude nvarchar(max) [null]
+  Postcode nvarchar(max) [null, note: 'Required by the application; still nullable in the current database.']
+}
+
+Table dbo.User {
+  Id int [pk, increment, not null]
+  Name nvarchar(255) [not null]
+  Email nvarchar(255) [not null]
+  PasswordHash nvarchar(500) [not null]
+  Location int [not null]
+  PreferredRangeKm decimal(12,2) [null, note: 'Preferred travel distance in kilometres.']
+  Bio nvarchar(2000) [null]
+  ProfilePictureUrl nvarchar(500) [null]
+
+  indexes {
+    Email [unique, name: 'IX_User_Email']
+    Location [name: 'IX_User_Location']
+  }
+}
+
+Table dbo.Skill {
+  Id int [pk, increment, not null]
+  Name nvarchar(100) [not null]
+
+  indexes {
+    Name [unique, name: 'IX_Skill_Name']
+  }
+}
+
+Table dbo.PlayerSkill {
+  Id int [pk, increment, not null]
+  UserId int [not null]
+  SkillId int [not null]
+  SkillLevel int [not null, note: 'Application skill scale: 1 to 5.']
+
+  indexes {
+    SkillId [name: 'IX_PlayerSkill_SkillId']
+    (UserId, SkillId) [unique, name: 'IX_PlayerSkill_UserId_SkillId']
+  }
+}
+
+Table dbo.Availability {
+  Id int [pk, increment, not null]
+  UserId int [not null]
+  DayOfWeek int [not null, note: 'Sunday = 0 through Saturday = 6.']
+  StartTime time(7) [not null]
+  EndTime time(7) [not null]
+
+  indexes {
+    UserId [name: 'IX_Availability_UserId']
+  }
+}
+
+Table dbo.Event {
+  Id int [pk, increment, not null]
+  Name nvarchar(max) [not null]
+  Date datetime2(7) [not null]
+  Location int [not null]
+  EndDate datetime2(7) [null]
+  SkillId int [null]
+  SkillLevel int [null, note: 'Target skill level.']
+  MaxParticipants int [null]
+  Bio nvarchar(4000) [null]
+  CreatedById int [null]
+  PictureUrl nvarchar(500) [null]
+
+  indexes {
+    CreatedById [name: 'IX_Event_CreatedById']
+    Location [name: 'IX_Event_Location']
+    SkillId [name: 'IX_Event_SkillId']
+  }
+}
+
+Table dbo.UserEvent {
+  Id int [pk, increment, not null]
+  UserId int [not null]
+  EventId int [not null]
+
+  indexes {
+    EventId [name: 'IX_UserEvent_EventId']
+    (UserId, EventId) [unique, name: 'IX_UserEvent_UserId_EventId']
+  }
+}
+
+Table dbo.Connection {
+  Id int [pk, increment, not null]
+  UserId int [not null, note: 'Smaller user ID in the pair.']
+  OtherUserId int [not null, note: 'Larger user ID in the pair.']
+  RequestedById int [not null, note: 'Request sender; no foreign key exists for this column in the current database.']
+  IsAccepted bit [not null, note: 'False = pending; true = connected.']
+  CreatedAt datetime2(7) [not null]
+
+  indexes {
+    OtherUserId [name: 'IX_Connection_OtherUserId']
+    (UserId, OtherUserId) [unique, name: 'IX_Connection_UserId_OtherUserId']
+  }
+
+  Note: 'Database check constraint CK_Connection_Order requires UserId < OtherUserId.'
+}
+
+Ref: dbo.User.Location > dbo.Location.Id [delete: no action]
+Ref: dbo.PlayerSkill.UserId > dbo.User.Id [delete: no action]
+Ref: dbo.PlayerSkill.SkillId > dbo.Skill.Id [delete: no action]
+Ref: dbo.Availability.UserId > dbo.User.Id [delete: cascade]
+Ref: dbo.Event.Location > dbo.Location.Id [delete: no action]
+Ref: dbo.Event.SkillId > dbo.Skill.Id [delete: no action]
+Ref: dbo.Event.CreatedById > dbo.User.Id [delete: no action]
+Ref: dbo.UserEvent.UserId > dbo.User.Id [delete: no action]
+Ref: dbo.UserEvent.EventId > dbo.Event.Id [delete: no action]
+Ref: dbo.Connection.UserId > dbo.User.Id [delete: no action]
+Ref: dbo.Connection.OtherUserId > dbo.User.Id [delete: no action]

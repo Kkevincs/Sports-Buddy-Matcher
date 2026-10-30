@@ -24,11 +24,15 @@ namespace SportsBuddyMatcher
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            DotNetEnv.Env.NoClobber().Load(Path.Combine(builder.Environment.ContentRootPath, ".env"));
+            var envFile = Path.Combine(builder.Environment.ContentRootPath, ".env");
+            if (File.Exists(envFile)) DotNetEnv.Env.NoClobber().Load(envFile);
             builder.Configuration.AddEnvironmentVariables();
 
+            var port = builder.Configuration["PORT"];
+            if (port is not null) builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
             var jwtSecret = builder.Configuration["JWT_SECRET"]
-                ?? throw new InvalidOperationException("JWT_SECRET must be set in .env.");
+                ?? throw new InvalidOperationException("JWT_SECRET must be set as an environment variable or in .env.");
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -120,7 +124,8 @@ namespace SportsBuddyMatcher
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            // The deployment reverse proxy handles public HTTPS.
+            if (app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 
             app.UseDefaultFiles();
             app.Use(async (context, next) =>
@@ -134,6 +139,7 @@ namespace SportsBuddyMatcher
             app.UseAuthorization();
 
 
+            app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
             app.MapControllers();
 
             app.Run();
