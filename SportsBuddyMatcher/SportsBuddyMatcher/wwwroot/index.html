@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sport Buddy Matcher · Club Noticeboard</title>
+<link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#feed" aria-label="Sport Buddy Matcher home"><span>SPORT<br>BUDDY<br>MATCHER</span><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="26" cy="12" r="6"/><circle cx="52" cy="12" r="6"/><path d="M25 24 15 36 6 34M25 24l13 8 13-9 12 12M25 24l-3 22-10 16m10-16 13 17M51 23l-3 23-10 16m10-16 13 17" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  <p class="brand-note">PLAY TOGETHER<br>FIND YOUR PEOPLE<br>ACROSS THE NETHERLANDS</p>
+  <nav aria-label="Main navigation">
+    <a href="#feed" data-auth hidden>Find a buddy</a><a href="#events" data-auth hidden>Events</a><a href="#profile" data-auth hidden>My profile</a>
+    <a href="#login" data-guest>Log in</a><a href="#register" data-guest>Register</a>
+    <button id="logout" class="text-button" type="button" data-auth hidden>Log out</button>
+  </nav>
+  <div class="header-tools" data-auth hidden><span class="edition">01 / CLUB NOTICEBOARD</span><div class="header-filters"><label class="filter-chip range-chip"><span aria-hidden="true">◎</span><select id="header-range" aria-label="Preferred travel distance"></select></label></div></div>
+</header>
+<main>
+<p id="status" role="status" aria-live="polite" hidden></p>
+<section class="auth-page" data-page="login" hidden>
+  <div class="auth-art"><span class="eyebrow">GOOD GAMES. BETTER COMPANY.</span><h1>Your next game<br>starts here.</h1><p>Meet local players. Find your next session.<br>Make sport a part of your week.</p></div>
+  <div class="form-panel"><span class="eyebrow">WELCOME BACK</span><h2>Log in</h2><form id="login-form"><label>Email<input name="email" type="email" autocomplete="username" maxlength="255" required></label><label>Password<input name="password" type="password" autocomplete="current-password" maxlength="500" required></label><button type="submit">Log in →</button></form><p>New to the club? <a href="#register">Create an account</a></p></div>
+</section>
+<section class="auth-page" data-page="register" hidden>
+  <div class="auth-art"><span class="eyebrow">THERE'S A PLACE FOR EVERY PLAYER.</span><h1>Find your sport.<br>Find your people.</h1><p>A friendly game, a running partner,<br>or your new favourite weekly ritual.</p></div>
+  <div class="form-panel"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Create an account</h2><form id="register-form">
+    <label>Name<input name="name" autocomplete="name" maxlength="255" required></label><label>Email<input name="email" type="email" autocomplete="email" maxlength="255" required></label><label>Password<input name="password" type="password" autocomplete="new-password" maxlength="500" required></label>
+    <fieldset><legend>Your neighbourhood</legend><div class="form-grid"><label>Country<input name="country" value="Hungary" autocomplete="country-name" maxlength="100" required></label><label>City<input name="city" autocomplete="address-level2" maxlength="100" required></label></div><label>Street and house number<input name="street" autocomplete="address-line1" maxlength="255" required></label><label>Postcode<input name="postcode" autocomplete="postal-code" required></label></fieldset>
+    <label>Travel distance (km)<input name="preferredRangeKm" type="number" min="0" step="0.01" placeholder="10"></label><button type="submit">Create account →</button></form><p>Already a member? <a href="#login">Log in</a></p></div>
+</section>
+<section data-page="feed" hidden>
+  <div class="page-intro"><span class="eyebrow">YOUR LOCAL SPORT COMMUNITY</span><h1>Who is playing this week?</h1><p>Discover sessions near you and find someone to share the game.</p></div>
+  <form id="feed-form" class="feed-controls"><label>Choose your sport<select id="feed-sport" name="skillId" required></select></label><button type="submit" class="secondary">Refresh noticeboard ↻</button><p id="feed-note" class="hint"></p></form>
+  <div class="noticeboard"><section class="session-column"><div class="section-heading"><h2>UPCOMING SESSIONS</h2><label class="sort-control">Sort by <select id="feed-sort" aria-label="Sort events"><option value="score">Best match</option><option value="date">Soonest first</option></select></label></div><div id="match-list" aria-live="polite"></div></section>
+  <aside class="people-column"><div class="section-heading"><h2>PEOPLE LOOKING FOR A PARTNER</h2><a href="#profile">My connections →</a></div><div id="people-list"></div><div class="organise-cta"><span class="cta-icon">♧</span><div><h3>Prefer to organise?</h3><p>Create a session and bring local players together.</p></div><a href="#events" class="button">Create a session →</a></div></aside></div>
+</section>
+<section data-page="profile" hidden>
+  <div class="page-intro compact"><span class="eyebrow">YOUR CORNER OF THE CLUB</span><h1>My profile</h1><p>A little about you, a lot of possibilities.</p></div>
+  <div class="profile-grid"><div class="profile-column"><section class="form-panel"><div class="profile-heading"><div id="my-avatar"></div><div><h2 id="my-profile-name">Your profile</h2><p id="my-profile-city" class="hint"></p></div></div>
+    <form id="profile-form"><label>Name<input name="name" maxlength="255" required></label><label>About you<textarea name="bio" maxlength="2000" rows="4" placeholder="What do you enjoy playing? What kind of buddy are you looking for?"></textarea></label><button type="submit">Save profile</button></form>
+    <form id="profile-photo-form" class="sub-form"><label>Profile photo<input name="file" type="file" accept="image/jpeg,image/png,image/webp" required></label><p class="hint">JPEG, PNG or WebP · up to 5 MB</p><button type="submit" class="secondary">Upload photo</button></form><dl id="profile-details"></dl>
+    <form id="range-form" class="sub-form"><label>Preferred travel distance (km)<input id="preferred-range" name="preferredRangeKm" type="number" min="0" step="0.01" placeholder="Not set"></label><p class="hint">A personal radius in kilometres. Decimals are welcome.</p><button type="submit">Save distance</button></form>
+  </section>
+
+  <section class="form-panel"><h2 id="skill-form-title">Add a sport</h2><form id="skill-form"><input name="playerSkillId" type="hidden"><label>Sport<select id="skill-choice" name="skillId" required></select></label><label>Your skill level<select name="skillLevel" required><option value="1">1 — Beginner</option><option value="2">2 — Basic</option><option value="3" selected>3 — Intermediate</option><option value="4">4 — Advanced</option><option value="5">5 — Expert</option></select></label><div class="actions"><button id="save-skill" type="submit">Add sport</button><button id="cancel-skill" type="button" class="secondary" hidden>Cancel edit</button></div></form><details><summary>Sport missing from the list?</summary><form id="new-sport-form"><label>Sport name<input name="name" maxlength="100" required></label><button type="submit" class="secondary">Add to sport list</button></form></details></section><section><div class="section-heading"><h2>YOUR SPORTS</h2></div><div id="my-skills"></div></section></div>
+  <section class="form-panel"><h2>Your weekly availability</h2><form id="availability-form"><p class="hint">One schedule for all your sports. Add your available times and save.</p><div id="availability-rows"></div><button id="add-slot" type="button" class="secondary">+ Add time slot</button><button type="submit">Save availability</button></form></section></div>
+  <div class="section-heading"><h2>YOUR CONNECTIONS & REQUESTS</h2></div><div id="connection-list" class="connection-grid"></div>
+</section>
+<section data-page="member" hidden><a href="#feed" class="back-link">← Back to the noticeboard</a><div id="member-profile" class="public-profile"></div></section>
+<section data-page="events" hidden>
+  <div class="page-intro compact"><span class="eyebrow">SAVE THE DATE</span><h1>Your sporting week.</h1><p>The sessions you've joined, all in one place.</p></div>
+  <div class="events-layout"><section><div class="section-heading"><h2>YOUR JOINED EVENTS</h2></div><div id="event-list"></div></section><section class="form-panel"><h2>Create a session</h2><form id="event-form">
+    <label>Event name<input name="name" maxlength="255" required></label><label>Sport<select id="event-sport" name="skillId" required></select></label><div class="form-grid"><label>Target skill level<select name="skillLevel" required><option value="1">1 — Beginner</option><option value="2">2 — Basic</option><option value="3" selected>3 — Intermediate</option><option value="4">4 — Advanced</option><option value="5">5 — Expert</option></select></label><label>Capacity<input name="maxParticipants" type="number" min="1" step="1" required></label></div><div class="form-grid"><label>Starts<input name="date" type="datetime-local" required></label><label>Ends<input name="endDate" type="datetime-local" required></label></div><label>About the session<textarea name="bio" rows="4" maxlength="4000" placeholder="What should players expect?"></textarea></label><label>Event photo<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label>
+    <label>Location<select id="event-location" name="location" required></select></label><fieldset id="event-address" hidden><legend>New event address</legend><label>Country<input name="country" maxlength="100"></label><label>City<input name="city" maxlength="100"></label><label>Street and house number<input name="street" maxlength="255"></label><label>Postcode<input name="postcode"></label></fieldset><button type="submit">Create session →</button></form></section></div>
+</section>
+<section data-page="event" hidden><a href="#feed" class="back-link">← Back to the noticeboard</a><div id="event-detail"></div><section id="event-owner-panel" class="form-panel owner-panel" hidden><h2>Edit your session</h2><form id="event-edit-form"><label>Name<input name="name" required maxlength="255"></label><label>Sport<select id="edit-event-sport" name="skillId" required></select></label><div class="form-grid"><label>Skill level<select name="skillLevel"><option value="1">1 — Beginner</option><option value="2">2 — Basic</option><option value="3">3 — Intermediate</option><option value="4">4 — Advanced</option><option value="5">5 — Expert</option></select></label><label>Capacity<input name="maxParticipants" type="number" min="1" required></label></div><div class="form-grid"><label>Starts<input name="date" type="datetime-local" required></label><label>Ends<input name="endDate" type="datetime-local" required></label></div><label>Bio<textarea name="bio" rows="5" maxlength="4000"></textarea></label><button type="submit">Save session</button></form><form id="event-photo-form" class="sub-form"><label>Event photo<input name="file" type="file" accept="image/jpeg,image/png,image/webp" required></label><p class="hint">JPEG, PNG or WebP · up to 5 MB</p><button type="submit" class="secondary">Upload event photo</button></form></section></section>
+</main><footer><span>SPORT BUDDY MATCHER</span><span>Good games. Better company.</span></footer>
+</body></html>

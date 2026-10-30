@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SportsBuddyMatcher.BusinessLogic/SportsBuddyMatcher.BusinessLogic.csproj" />
+  <Project Path="SportsBuddyMatcher.Repository/SportsBuddyMatcher.Repository.csproj" />
+  <Project Path="SportsBuddyMatcher/SportsBuddyMatcher.csproj" />
+</Solution>

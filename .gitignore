@@ -38,6 +38,13 @@ ScaffoldingReadMe.txt
 
 # dotenv environment variables file
 .env
+.env.*
+!.env.example
+
+# Local IDE state and uploaded user content
+.vs/
+*.csproj.user
+SportsBuddyMatcher/SportsBuddyMatcher/wwwroot/uploads/
 
 # Others
 ~$*
