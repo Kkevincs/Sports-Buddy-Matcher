@@ -39,7 +39,9 @@ services:
       - backend
 
   database-init:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    build:
+      context: .
+      dockerfile: Dockerfile.database-init
     restart: "no"
     environment:
       SQLCMDPASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in Dokploy}
@@ -53,8 +55,6 @@ services:
         else
           echo "Existing database detected; skipping initialization."
         fi
-    volumes:
-      - ./deploy/schema.sql:/schema.sql:ro
     depends_on:
       database:
         condition: service_healthy

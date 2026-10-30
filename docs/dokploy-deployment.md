@@ -2,7 +2,7 @@
 
 Use a **Docker Compose** service with this Git repository, branch `main`, repository root as the working directory, and Compose Path `./docker-compose.yml`. Use regular Docker Compose, not Docker Stack/Swarm.
 
-The stack contains the app/frontend, SQL Server 2022 Express, and a one-off schema initializer. It does not require a separately hosted database. The SQL Server image needs an x86-64 server and at least 2 GB memory for SQL Server; allow additional memory for Dokploy and application builds.
+The stack contains the app/frontend, SQL Server 2022 Express, and a one-off schema initializer. The initializer image includes its SQL script, so it does not rely on a repository bind mount that Dokploy can clear during redeployment. It does not require a separately hosted database. The SQL Server image needs an x86-64 server and at least 2 GB memory for SQL Server; allow additional memory for Dokploy and application builds.
 
 ## Environment
 
