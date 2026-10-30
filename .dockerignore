@@ -6,6 +6,5 @@
 **/.env
 **/.env.*
 **/wwwroot/uploads
-tools
 docs
 *.md

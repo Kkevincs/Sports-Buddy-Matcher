@@ -8,10 +8,13 @@ using SportsBuddyMatcher.Repository.Models;
 
 // Fictional development data. Reserved email addresses identify this seed without labels in display names.
 var root = Directory.GetCurrentDirectory();
-var apiRoot = Path.Combine(root, "SportsBuddyMatcher", "SportsBuddyMatcher");
-var config = new ConfigurationBuilder().AddJsonFile(Path.Combine(apiRoot, "appsettings.json")).Build();
+var sourceApiRoot = Path.Combine(root, "SportsBuddyMatcher", "SportsBuddyMatcher");
+var apiRoot = Directory.Exists(sourceApiRoot) ? sourceApiRoot : root;
+var config = new ConfigurationBuilder().AddJsonFile(Path.Combine(apiRoot, "appsettings.json"))
+    .AddEnvironmentVariables().Build();
 await using var db = new SportsBuddyMatcherDbContext(new DbContextOptionsBuilder<SportsBuddyMatcherDbContext>()
     .UseSqlServer(config.GetConnectionString("DefaultConnection")).Options);
+Console.WriteLine($"Seed target: {db.Database.GetDbConnection().DataSource} / {db.Database.GetDbConnection().Database}");
 const string domain = "@netherlands-seed.example.test";
 const string password = "Netherlands-2026!";
 var cities = new[] {
@@ -111,7 +114,9 @@ var userCount = await seeded.CountAsync();
 var eventCount = await db.Events.CountAsync(e => e.CreatedBy != null && e.CreatedBy.Email.EndsWith(domain));
 if (userCount != 120 || eventCount != 50 || await seeded.AnyAsync(u => u.ProfilePictureUrl != null || u.Name.Contains("Demo")))
     throw new Exception("Seed totals or profile requirements were not met.");
-await File.WriteAllTextAsync(Path.Combine(root, "tools", "NetherlandsSeed", "accounts.json"), JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }));
+var manifestFolder = Path.Combine(root, "tools", "NetherlandsSeed");
+if (Directory.Exists(manifestFolder))
+    await File.WriteAllTextAsync(Path.Combine(manifestFolder, "accounts.json"), JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"Added {addedUsers} accounts, {addedEvents} events. Verified {userCount} accounts, {eventCount} events across 10 cities, with no profile photos.");
 Console.WriteLine($"Login: eindhoven.01{domain} / {password}");
 

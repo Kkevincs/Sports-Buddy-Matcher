@@ -33,6 +33,19 @@ The app runs as UID 1654. Docker named volumes inherit the image upload director
 
 ## Checks
 
+### Add the Netherlands sample accounts and events
+
+After deploying the image with the seed tool, open the terminal for the **app** container in Dokploy and run:
+
+```sh
+cd /app
+dotnet /seed/NetherlandsSeed.dll
+```
+
+The tool uses the app container's existing `ConnectionStrings__DefaultConnection`. It prints the target server and database before inserting data. It adds 120 fictional accounts across 10 Dutch cities and 50 events in soccer, basketball, tennis, running, and cycling. Accounts have ordinary display names and no profile photos; event photos are bundled in the image. Dates for newly created events are relative to the run date. Existing seeded accounts/events are skipped, and other users' records are preserved.
+
+Login: `eindhoven.01@netherlands-seed.example.test` / `Netherlands-2026!`. Other cities use their slug followed by `.01` through `.12` at the same domain. The tool is manual and never runs automatically on app startup.
+
 After deploying, check `/health`, open `/`, register/log in, and exercise matching and photo uploads. A fresh database has no sports catalog or sample users until you import or add them.
 
 Generate a new schema script when migrations change:
